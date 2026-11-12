@@ -166,6 +166,12 @@
       position: relative
     }
 
+    .blk>span:nth-child(2) {
+      min-width: 0;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere
+    }
+
     .blk .grip {
       flex: none;
       width: 18px;
@@ -175,12 +181,31 @@
         radial-gradient(circle, var(--muted) 2px, transparent 2.5px) 0 0/9px 9px
     }
 
-    .blk.drag {
-      z-index: 5;
+    .blk.dragging {
+      z-index: 100;
       cursor: grabbing;
       border-color: var(--brass);
       box-shadow: 0 10px 24px rgba(0, 0, 0, .28);
-      transition: none
+      transition: none;
+      pointer-events: none
+    }
+
+    .blk.drop-slot {
+      background: var(--panel);
+      border: 2px dashed var(--brass);
+      box-shadow: none
+    }
+
+    .blk.drop-slot>span {
+      visibility: hidden
+    }
+
+    @media (max-width:600px) {
+      .blk {
+        font-size: 14px;
+        padding: 10px;
+        gap: 8px
+      }
     }
 
     .blk.ok {
@@ -414,6 +439,7 @@
       <p class="goal">Tipp: Erst müssen die Variablen existieren, dann kommt die Schleife, am Ende die Prüfung.</p>
     </section>
   </main>
+  <script src="./sortable.min.js"></script>
   <script>
     const ZIEL = [
       "energie = 0",
@@ -432,6 +458,7 @@
     function say(t, c) { msg.textContent = t; msg.className = c || '' }
     function order() { return [...list.children].map(e => +e.dataset.k) }
     function build() {
+      sortable.option('disabled', true);
       let idx = ZIEL.map((_, i) => i);
       do { for (let i = idx.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[idx[i], idx[j]] = [idx[j], idx[i]] } }
       while (isRight(idx));
@@ -461,30 +488,27 @@
     }
     function clearMarks() { [...list.children].forEach(e => { e.classList.remove('ok', 'bad', 'run'); e.querySelector('.tag').textContent = '' }) }
 
-    // Ziehen per Touch oder Maus
-    list.addEventListener('pointerdown', e => {
-      const el = e.target.closest('.blk'); if (!el || !started || busy || solved) return;
-      e.preventDefault(); el.setPointerCapture(e.pointerId); clearMarks();
-      const r = el.getBoundingClientRect(), grab = e.clientY - r.top, h = r.height;
-      let before = order().join();
-      el.classList.add('drag');
-      const move = ev => {
-        el.style.transform = 'none';
-        const top = el.getBoundingClientRect().top;
-        const y = ev.clientY - grab;
-        const c = y + h / 2;
-        const prev = el.previousElementSibling, next = el.nextElementSibling;
-        if (prev) { const p = prev.getBoundingClientRect(); if (c < p.top + p.height / 2) { list.insertBefore(el, prev); } }
-        if (next) { const n = next.getBoundingClientRect(); if (c > n.top + n.height / 2) { list.insertBefore(next, el); } }
-        el.style.transform = 'none';
-        el.style.transform = 'translateY(' + (y - el.getBoundingClientRect().top) + 'px)';
-      };
-      const up = () => {
-        el.removeEventListener('pointermove', move); el.removeEventListener('pointerup', up); el.removeEventListener('pointercancel', up);
-        el.classList.remove('drag'); el.style.transform = '';
-
-      };
-      el.addEventListener('pointermove', move); el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
+    const sortable = Sortable.create(list, {
+      disabled: true,
+      draggable: '.blk',
+      animation: matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 160,
+      easing: 'cubic-bezier(0.2, 0, 0, 1)',
+      forceFallback: true,
+      fallbackOnBody: true,
+      fallbackTolerance: 4,
+      ghostClass: 'drop-slot',
+      fallbackClass: 'dragging',
+      scrollSensitivity: 70,
+      scrollSpeed: 12,
+      onChoose: clearMarks,
+      onStart() {
+        runBtn.disabled = true;
+        document.getElementById('again').disabled = true;
+      },
+      onEnd() {
+        runBtn.disabled = !started || busy || solved;
+        document.getElementById('again').disabled = false;
+      }
     });
 
     const wait = ms => new Promise(r => setTimeout(r, ms));
@@ -503,7 +527,7 @@
         list.classList.remove('shake'); void list.offsetWidth; list.classList.add('shake');
         return;
       }
-      busy = true; runBtn.disabled = true; clearInterval(timer);
+      busy = true; runBtn.disabled = true; sortable.option('disabled', true); clearInterval(timer);
       say('Code läuft …');
       const rows = [...list.children];
       let energie = 0; const pins = [12, 7, 19, 4];
@@ -528,6 +552,7 @@
     const cover = document.getElementById('cover');
     document.getElementById('start').addEventListener('click', () => {
       started = true; cover.hidden = true; list.classList.remove('locked'); runBtn.disabled = false;
+      sortable.option('disabled', false);
       say('Der Tresor öffnet sich bei genau 31 Energie.'); startTimer();
     });
     runBtn.addEventListener('click', run);

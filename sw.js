@@ -1,7 +1,7 @@
 const CACHE_PREFIX = 'tresor-hack-';
-const CACHE_NAME = `${CACHE_PREFIX}v1`;
+const CACHE_NAME = `${CACHE_PREFIX}v2`;
 const INDEX_URL = new URL('./index.html', self.location.href).href;
-const APP_ASSETS = ['./index.html', './manifest.webmanifest', './icon.svg']
+const APP_ASSETS = ['./index.html', './manifest.webmanifest', './icon.svg', './sortable.min.js']
     .map(path => new URL(path, self.location.href).href);
 
 self.addEventListener('install', event => {
