@@ -21,7 +21,14 @@
       --brass-ink: #fff;
       --ok: #237a4f;
       --bad: #b83a2e;
-      --code: #fbfcfc;
+      --code: #1f1f1f;
+      --code-ink: #cccccc;
+      --syntax-keyword: #c586c0;
+      --syntax-number: #b5cea8;
+      --syntax-string: #ce9178;
+      --syntax-function: #dcdcaa;
+      --syntax-boolean: #569cd6;
+      --syntax-operator: #d4d4d4;
       --ui: "Barlow Semi Condensed", "Avenir Next Condensed", "Arial Narrow", system-ui, sans-serif;
       --mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
       box-sizing: border-box;
@@ -40,7 +47,6 @@
         --brass-ink: #1b252b;
         --ok: #52c48a;
         --bad: #f0786b;
-        --code: #2f3f48;
       }
     }
 
@@ -54,7 +60,6 @@
       --brass-ink: #1b252b;
       --ok: #52c48a;
       --bad: #f0786b;
-      --code: #2f3f48;
     }
 
     html {
@@ -155,6 +160,7 @@
       min-height: 60px;
       padding: 8px 16px;
       background: var(--code);
+      color: var(--code-ink);
       border: 2px solid var(--line);
       border-radius: 10px;
       font-family: var(--mono);
@@ -172,13 +178,42 @@
       overflow-wrap: anywhere
     }
 
+    .token.keyword {
+      color: var(--syntax-keyword)
+    }
+
+    .token.number {
+      color: var(--syntax-number)
+    }
+
+    .token.boolean {
+      color: var(--syntax-boolean)
+    }
+
+    .token.operator {
+      color: var(--syntax-operator)
+    }
+
+    .token.string {
+      color: var(--syntax-string)
+    }
+
+    .token.builtin,
+    .token.function {
+      color: var(--syntax-function)
+    }
+
+    .blk.run .token {
+      color: inherit
+    }
+
     .blk .grip {
       flex: none;
       width: 18px;
       height: 22px;
       opacity: .55;
       background:
-        radial-gradient(circle, var(--muted) 2px, transparent 2.5px) 0 0/9px 9px
+        radial-gradient(circle, var(--code-ink) 2px, transparent 2.5px) 0 0/9px 9px
     }
 
     .blk.dragging {
@@ -440,7 +475,12 @@
     </section>
   </main>
   <script src="./sortable.min.js"></script>
+  <script src="./prism-core.min.js" data-manual></script>
+  <script src="./prism-python.min.js"></script>
   <script>
+    Prism.languages.insertBefore('python', 'keyword', {
+      'builtin-function': { pattern: /\bprint(?=\s*\()/, alias: 'builtin' }
+    });
     const ZIEL = [
       "energie = 0",
       "pins = [12, 7, 19, 4]",
@@ -466,7 +506,7 @@
       idx.forEach(k => {
         const d = document.createElement('div'); d.className = 'blk'; d.dataset.k = k;
         d.innerHTML = '<span class="grip"></span><span></span><span class="tag"></span>';
-        d.children[1].textContent = ZIEL[k]; list.appendChild(d);
+        d.children[1].innerHTML = Prism.highlight(ZIEL[k], Prism.languages.python, 'python'); list.appendChild(d);
       });
       solved = false; busy = false; started = false; runBtn.disabled = true; list.classList.add('locked'); cover.hidden = false;
       clearInterval(timer); t0 = null;

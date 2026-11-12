@@ -6,6 +6,10 @@ Drag-and-drop sorting uses a locally bundled copy of
 [SortableJS 1.15.6](https://github.com/SortableJS/Sortable/tree/1.15.6) (MIT license).
 It also works offline.
 
+Python syntax highlighting uses locally bundled
+[Prism 1.30.0](https://github.com/PrismJS/prism/tree/v1.30.0) (MIT license),
+with colors for both light and dark themes.
+
 ## Offline use
 
 Serve this directory over HTTPS (or localhost for development). Service workers
