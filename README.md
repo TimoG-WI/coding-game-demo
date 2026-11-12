@@ -10,6 +10,11 @@ Python syntax highlighting uses locally bundled
 [Prism 1.30.0](https://github.com/PrismJS/prism/tree/v1.30.0) (MIT license),
 with colors for both light and dark themes.
 
+The interface is inspired by the
+[Online Weidmüller Configurator](https://configurator.weidmueller.com/).
+The locally stored Weidmüller logo was extracted from its header. The logo and
+brand belong to Weidmüller and are not covered by this project's MIT license.
+
 ## Offline use
 
 Serve this directory over HTTPS (or localhost for development). Service workers
