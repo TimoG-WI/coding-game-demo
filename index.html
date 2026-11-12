@@ -513,7 +513,8 @@
           <label for="level">Schwierigkeitsgrad</label>
           <select id="level">
             <option value="easy">Einfach</option>
-            <option value="advanced" selected>Schwer</option>
+            <option value="advanced" selected>Fortgeschritten</option>
+            <option value="pro">Profi</option>
           </select>
         </div>
         <div class="field">
@@ -577,6 +578,21 @@
         ],
         swapInitial: true,
         hint: 'Tipp: Erst müssen die Variablen existieren, dann kommt die Schleife, am Ende die Prüfung.'
+      },
+      pro: {
+        code: [
+          "energie = 0",
+          "pins = [8, 7, 19, 2]",
+          "for p in pins:",
+          "    if p % 2 == 0:",
+          "        energie = energie + p // 2",
+          "    else:",
+          "        energie = energie + p",
+          "if energie == 31:",
+          "    print('TRESOR OFFEN!')"
+        ],
+        swapInitial: true,
+        hint: 'Tipp: % prüft den Rest einer Division, // teilt ganzzahlig. Gerade Pins zählen zur Hälfte, ungerade vollständig. Das else gehört zur Prüfung in der Schleife.'
       }
     };
     const list = document.getElementById('list'), msg = document.getElementById('msg'),
@@ -679,6 +695,18 @@
           await hi(1);
         }
         await hi(3);
+      } else if (level === LEVELS.pro) {
+        await hi(1);
+        for (const pin of [8, 7, 19, 2]) {
+          await hi(2); await hi(3);
+          if (pin % 2 === 0) {
+            await hi(4); energie += Math.floor(pin / 2);
+          } else {
+            await hi(5); await hi(6); energie += pin;
+          }
+          en.textContent = energie;
+        }
+        await hi(7); await hi(8);
       } else {
         await hi(1);
         await hi(2);
