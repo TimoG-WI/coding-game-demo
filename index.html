@@ -187,22 +187,35 @@
 
     .level-picker {
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
-      gap: 12px;
+      gap: 8px 16px;
       margin-bottom: 12px;
+      padding: 0;
+      border: 0;
       font-size: 15px;
       font-weight: 600
     }
 
-    .level-picker select {
+    .level-picker legend {
+      width: 100%;
+      padding: 0;
+      margin-bottom: 4px
+    }
+
+    .level-option {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
       min-height: 44px;
-      min-width: 160px;
-      padding: 8px 12px;
-      border: 1px solid var(--line);
-      border-radius: 2px;
-      background: var(--panel);
-      color: var(--ink);
-      font: inherit
+      cursor: pointer
+    }
+
+    .level-option input {
+      width: 18px;
+      height: 18px;
+      margin: 0;
+      accent-color: var(--brass)
     }
 
     #list {
@@ -573,14 +586,12 @@
     </div>
     <section aria-label="Code sortieren">
       <div class="panel">
-        <div class="level-picker">
-          <label for="level">Schwierigkeitsgrad</label>
-          <select id="level">
-            <option value="easy">Einfach</option>
-            <option value="advanced" selected>Fortgeschritten</option>
-            <option value="pro">Profi</option>
-          </select>
-        </div>
+        <fieldset class="level-picker">
+          <legend>Schwierigkeitsgrad</legend>
+          <label class="level-option"><input type="radio" name="level" value="easy"> Einfach</label>
+          <label class="level-option"><input type="radio" name="level" value="advanced" checked> Fortgeschritten</label>
+          <label class="level-option"><input type="radio" name="level" value="pro"> Profi</label>
+        </fieldset>
         <div class="field">
           <div class="file-name">tresor.py</div>
           <div id="list" aria-label="Code-Zeilen, per Ziehen sortieren"></div>
@@ -661,16 +672,18 @@
     };
     const list = document.getElementById('list'), msg = document.getElementById('msg'),
       en = document.getElementById('en'), vault = document.getElementById('vault'),
-      runBtn = document.getElementById('run'), levelSelect = document.getElementById('level'),
+      runBtn = document.getElementById('run'), levelInputs = [...document.querySelectorAll('input[name="level"]')],
       againBtn = document.getElementById('again'), fullscreenBtn = document.getElementById('fullscreen');
-    let level = LEVELS[levelSelect.value];
+    const selectedLevel = () => levelInputs.find(input => input.checked).value;
+    const setLevelDisabled = disabled => levelInputs.forEach(input => { input.disabled = disabled });
+    let level = LEVELS[selectedLevel()];
     let t0 = null, timer = null, resetTimer = null, busy = false, solved = false, started = false;
 
     function say(t, c) { msg.textContent = t; msg.className = c || '' }
     function order() { return [...list.children].map(e => +e.dataset.k) }
     function build() {
       clearTimeout(resetTimer);
-      level = LEVELS[levelSelect.value];
+      level = LEVELS[selectedLevel()];
       document.querySelector('.goal').textContent = level.hint;
       sortable.option('disabled', true);
       let idx = level.code.map((_, i) => i);
@@ -726,12 +739,12 @@
       onStart() {
         runBtn.disabled = true;
         againBtn.disabled = true;
-        levelSelect.disabled = true;
+        setLevelDisabled(true);
       },
       onEnd() {
         runBtn.disabled = !started || busy || solved;
         againBtn.disabled = false;
-        levelSelect.disabled = false;
+        setLevelDisabled(false);
       }
     });
 
@@ -752,7 +765,7 @@
         return;
       }
       busy = true; runBtn.disabled = true; sortable.option('disabled', true); clearInterval(timer);
-      againBtn.disabled = true; levelSelect.disabled = true;
+      againBtn.disabled = true; setLevelDisabled(true);
       say('Code läuft …');
       const rows = [...list.children];
       let energie = 0; const pins = [12, 7, 19, 4];
@@ -794,7 +807,7 @@
         document.getElementById('tm').textContent = Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
       }
       solved = true; busy = false;
-      againBtn.disabled = false; levelSelect.disabled = false;
+      againBtn.disabled = false; setLevelDisabled(false);
       resetTimer = setTimeout(() => { if (solved) build() }, 45000);
     }
     const cover = document.getElementById('cover');
@@ -805,7 +818,7 @@
     });
     runBtn.addEventListener('click', run);
     againBtn.addEventListener('click', build);
-    levelSelect.addEventListener('change', build);
+    levelInputs.forEach(input => input.addEventListener('change', build));
     let pseudoFullscreen = false;
     const nativeFullscreenElement = () => document.fullscreenElement || document.webkitFullscreenElement;
     const updateFullscreenButton = () => {
