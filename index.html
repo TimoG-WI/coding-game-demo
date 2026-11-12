@@ -212,10 +212,23 @@
     }
 
     .level-option input {
+      appearance: none;
       width: 18px;
       height: 18px;
       margin: 0;
-      accent-color: var(--brass)
+      border: 2px solid var(--muted);
+      border-radius: 50%;
+      background: #fff
+    }
+
+    .level-option input:checked {
+      border-color: var(--brass);
+      background: radial-gradient(circle, var(--brass) 0 4px, transparent 4.5px)
+    }
+
+    .level-option input:focus-visible {
+      outline: 3px solid var(--ink);
+      outline-offset: 2px
     }
 
     #list {
