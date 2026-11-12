@@ -1,0 +1,19 @@
+{
+    "id": "./",
+    "name": "Tresor-Hack: Bring den Code in Ordnung",
+    "short_name": "Tresor-Hack",
+    "lang": "de",
+    "start_url": "./",
+    "scope": "./",
+    "display": "standalone",
+    "background_color": "#dde3e6",
+    "theme_color": "#dde3e6",
+    "icons": [
+        {
+            "src": "./icon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "any"
+        }
+    ]
+}
