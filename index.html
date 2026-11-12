@@ -114,6 +114,18 @@
       display: initial
     }
 
+    html.pseudo-fullscreen {
+      overflow: hidden
+    }
+
+    body.pseudo-fullscreen {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      overflow: auto;
+      overscroll-behavior: contain
+    }
+
     main {
       max-width: 1280px;
       margin: 0 auto;
@@ -261,6 +273,13 @@
       min-width: 0;
       white-space: pre-wrap;
       overflow-wrap: anywhere
+    }
+
+    @media (hover: none) and (pointer: coarse) {
+      .blk:active:not(.dragging) {
+        background: #303030;
+        border-color: var(--brass)
+      }
     }
 
     .token.keyword {
@@ -684,6 +703,13 @@
     }
     function clearMarks() { [...list.children].forEach(e => { e.classList.remove('ok', 'bad', 'run'); e.querySelector('.tag').textContent = '' }) }
 
+    list.addEventListener('pointerdown', event => {
+      if (event.pointerType === 'touch' && event.target.closest('.blk') && started && !busy && !solved &&
+        typeof navigator.vibrate === 'function') {
+        navigator.vibrate(12);
+      }
+    }, { passive: true });
+
     const sortable = Sortable.create(list, {
       disabled: true,
       draggable: '.blk',
@@ -780,25 +806,51 @@
     runBtn.addEventListener('click', run);
     againBtn.addEventListener('click', build);
     levelSelect.addEventListener('change', build);
-    if (!document.documentElement.requestFullscreen || !document.exitFullscreen) {
-      fullscreenBtn.hidden = true;
-    } else {
-      const updateFullscreenButton = () => {
-        const isFullscreen = Boolean(document.fullscreenElement);
-        fullscreenBtn.classList.toggle('is-fullscreen', isFullscreen);
-        fullscreenBtn.setAttribute('aria-label', isFullscreen ? 'Vollbild beenden' : 'Vollbild aktivieren');
-        fullscreenBtn.title = isFullscreen ? 'Vollbild beenden' : 'Vollbild aktivieren';
-      };
-      fullscreenBtn.addEventListener('click', async () => {
-        try {
-          if (document.fullscreenElement) await document.exitFullscreen();
-          else await document.documentElement.requestFullscreen();
-        } catch (error) {
-          console.error('Fullscreen toggle failed:', error);
-        }
-      });
-      document.addEventListener('fullscreenchange', updateFullscreenButton);
+    let pseudoFullscreen = false;
+    const nativeFullscreenElement = () => document.fullscreenElement || document.webkitFullscreenElement;
+    const updateFullscreenButton = () => {
+      const isFullscreen = Boolean(nativeFullscreenElement() || pseudoFullscreen);
+      fullscreenBtn.classList.toggle('is-fullscreen', isFullscreen);
+      fullscreenBtn.setAttribute('aria-label', isFullscreen ? 'Vollbild beenden' : 'Vollbild aktivieren');
+      fullscreenBtn.title = isFullscreen ? 'Vollbild beenden' : 'Vollbild aktivieren';
+    };
+    function setPseudoFullscreen(enabled) {
+      pseudoFullscreen = enabled;
+      document.documentElement.classList.toggle('pseudo-fullscreen', enabled);
+      document.body.classList.toggle('pseudo-fullscreen', enabled);
+      updateFullscreenButton();
     }
+    fullscreenBtn.addEventListener('click', async () => {
+      const requestFullscreen = document.documentElement.requestFullscreen ||
+        document.documentElement.webkitRequestFullscreen;
+      const exitFullscreen = document.exitFullscreen || document.webkitExitFullscreen;
+      if (nativeFullscreenElement()) {
+        try {
+          if (exitFullscreen) await exitFullscreen.call(document);
+        } catch (error) {
+          console.error('Fullscreen exit failed:', error);
+        }
+      } else if (pseudoFullscreen) {
+        setPseudoFullscreen(false);
+      } else if (requestFullscreen && exitFullscreen) {
+        try {
+          await requestFullscreen.call(document.documentElement);
+          await new Promise(resolve => requestAnimationFrame(resolve));
+          if (!nativeFullscreenElement()) setPseudoFullscreen(true);
+        } catch (error) {
+          console.info('Native fullscreen unavailable; using viewport fullscreen.', error);
+          setPseudoFullscreen(true);
+        }
+      } else {
+        setPseudoFullscreen(true);
+      }
+      updateFullscreenButton();
+    });
+    document.addEventListener('fullscreenchange', updateFullscreenButton);
+    document.addEventListener('webkitfullscreenchange', updateFullscreenButton);
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && pseudoFullscreen) setPseudoFullscreen(false);
+    });
     build();
 
     if ('serviceWorker' in navigator) {
