@@ -139,6 +139,26 @@
       min-width: 0
     }
 
+    .level-picker {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+      font-size: 15px;
+      font-weight: 600
+    }
+
+    .level-picker select {
+      min-height: 44px;
+      min-width: 160px;
+      padding: 8px 12px;
+      border: 1px solid var(--line);
+      border-radius: 2px;
+      background: var(--panel);
+      color: var(--ink);
+      font: inherit
+    }
+
     #list {
       display: flex;
       flex-direction: column;
@@ -489,6 +509,13 @@
     </div>
     <section aria-label="Code sortieren">
       <div class="panel">
+        <div class="level-picker">
+          <label for="level">Schwierigkeitsgrad</label>
+          <select id="level">
+            <option value="easy">Einfach</option>
+            <option value="advanced" selected>Schwer</option>
+          </select>
+        </div>
         <div class="field">
           <div class="file-name">tresor.py</div>
           <div id="list" aria-label="Code-Zeilen, per Ziehen sortieren"></div>
@@ -527,32 +554,53 @@
     Prism.languages.insertBefore('python', 'keyword', {
       'builtin-function': { pattern: /\bprint(?=\s*\()/, alias: 'builtin' }
     });
-    const ZIEL = [
-      "energie = 0",
-      "pins = [12, 7, 19, 4]",
-      "for p in pins:",
-      "    if p > 10:",
-      "        energie = energie + p",
-      "if energie == 31:",
-      "    print('TRESOR OFFEN!')"
-    ];
+    const LEVELS = {
+      easy: {
+        code: [
+          "energie = 1",
+          "while energie < 31:",
+          "    energie = energie + 10",
+          "print('TRESOR OFFEN!')"
+        ],
+        swapInitial: false,
+        hint: 'Tipp: Starte mit 1 Energie. Solange die Energie unter 31 liegt, addiert die Schleife jeweils 10. Danach öffnest du den Tresor.'
+      },
+      advanced: {
+        code: [
+          "energie = 0",
+          "pins = [12, 7, 19, 4]",
+          "for p in pins:",
+          "    if p > 10:",
+          "        energie = energie + p",
+          "if energie == 31:",
+          "    print('TRESOR OFFEN!')"
+        ],
+        swapInitial: true,
+        hint: 'Tipp: Erst müssen die Variablen existieren, dann kommt die Schleife, am Ende die Prüfung.'
+      }
+    };
     const list = document.getElementById('list'), msg = document.getElementById('msg'),
       en = document.getElementById('en'), vault = document.getElementById('vault'),
-      runBtn = document.getElementById('run');
-    let t0 = null, timer = null, busy = false, solved = false, started = false;
+      runBtn = document.getElementById('run'), levelSelect = document.getElementById('level'),
+      againBtn = document.getElementById('again');
+    let level = LEVELS[levelSelect.value];
+    let t0 = null, timer = null, resetTimer = null, busy = false, solved = false, started = false;
 
     function say(t, c) { msg.textContent = t; msg.className = c || '' }
     function order() { return [...list.children].map(e => +e.dataset.k) }
     function build() {
+      clearTimeout(resetTimer);
+      level = LEVELS[levelSelect.value];
+      document.querySelector('.goal').textContent = level.hint;
       sortable.option('disabled', true);
-      let idx = ZIEL.map((_, i) => i);
+      let idx = level.code.map((_, i) => i);
       do { for (let i = idx.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[idx[i], idx[j]] = [idx[j], idx[i]] } }
       while (isRight(idx));
       list.innerHTML = '';
       idx.forEach(k => {
         const d = document.createElement('div'); d.className = 'blk'; d.dataset.k = k;
         d.innerHTML = '<span class="grip"></span><span></span><span class="tag"></span>';
-        d.children[1].innerHTML = Prism.highlight(ZIEL[k], Prism.languages.python, 'python'); list.appendChild(d);
+        d.children[1].innerHTML = Prism.highlight(level.code[k], Prism.languages.python, 'python'); list.appendChild(d);
       });
       solved = false; busy = false; started = false; runBtn.disabled = true; list.classList.add('locked'); cover.hidden = false;
       clearInterval(timer); t0 = null;
@@ -560,10 +608,11 @@
       en.textContent = 0; vault.classList.remove('open');
       say('Drück auf Start, dann läuft die Zeit.');
     }
-    function isRight(o) {
-      const a = o.join(), b = ZIEL.map((_, i) => i);
-      const alt = b.slice(); alt[0] = 1; alt[1] = 0; // Variablen dürfen vertauscht sein
-      return a === b.join() || a === alt.join();
+    function isCorrectPosition(key, index) {
+      return key === index || (level.swapInitial && index < 2 && key < 2);
+    }
+    function isRight(sequence) {
+      return sequence.length === level.code.length && sequence.every(isCorrectPosition);
     }
     function startTimer() {
       if (t0) return; t0 = Date.now();
@@ -589,11 +638,13 @@
       onChoose: clearMarks,
       onStart() {
         runBtn.disabled = true;
-        document.getElementById('again').disabled = true;
+        againBtn.disabled = true;
+        levelSelect.disabled = true;
       },
       onEnd() {
         runBtn.disabled = !started || busy || solved;
-        document.getElementById('again').disabled = false;
+        againBtn.disabled = false;
+        levelSelect.disabled = false;
       }
     });
 
@@ -605,35 +656,47 @@
       if (!isRight(o)) {
         let right = 0;
         [...list.children].forEach((e, i) => {
-          const k = o[i]; const good = k === i || (i < 2 && k < 2);
+          const good = isCorrectPosition(o[i], i);
           e.classList.add(good ? 'ok' : 'bad'); e.querySelector('.tag').textContent = good ? 'passt' : 'falsch';
           if (good) right++;
         });
-        say(right + ' von 7 Zeilen sitzen. Der Tresor bleibt zu.', 'warn');
+        say(right + ' von ' + level.code.length + ' Zeilen sitzen. Der Tresor bleibt zu.', 'warn');
         list.classList.remove('shake'); void list.offsetWidth; list.classList.add('shake');
         return;
       }
       busy = true; runBtn.disabled = true; sortable.option('disabled', true); clearInterval(timer);
+      againBtn.disabled = true; levelSelect.disabled = true;
       say('Code läuft …');
       const rows = [...list.children];
       let energie = 0; const pins = [12, 7, 19, 4];
       const hi = async i => { rows[i].classList.add('run'); await wait(450); rows[i].classList.remove('run') };
-      const base = rows.length - 5; // Zeilenindex nach Variablen-Block
-      await hi(0); await hi(1);
-      await hi(2);
-      for (const p of pins) {
+      await hi(0);
+      if (level === LEVELS.easy) {
+        energie = 1; en.textContent = energie;
+        await hi(1);
+        while (energie < 31) {
+          await hi(2); energie += 10; en.textContent = energie;
+          await hi(1);
+        }
         await hi(3);
-        if (p > 10) { await hi(4); energie += p; en.textContent = energie }
+      } else {
+        await hi(1);
+        await hi(2);
+        for (const p of pins) {
+          await hi(3);
+          if (p > 10) { await hi(4); energie += p; en.textContent = energie }
+        }
+        await hi(5); await hi(6);
       }
-      await hi(5);
       if (energie === 31) {
-        rows[6].classList.add('ok'); await hi(6); rows.forEach(r => r.classList.add('ok'));
+        rows.forEach(r => r.classList.add('ok'));
         vault.classList.add('open'); say('TRESOR OFFEN!', 'good');
         const s = Math.floor((Date.now() - t0) / 1000);
         document.getElementById('tm').textContent = Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
       }
       solved = true; busy = false;
-      setTimeout(() => { if (solved) build() }, 45000); // Messe: automatisch neue Runde
+      againBtn.disabled = false; levelSelect.disabled = false;
+      resetTimer = setTimeout(() => { if (solved) build() }, 45000);
     }
     const cover = document.getElementById('cover');
     document.getElementById('start').addEventListener('click', () => {
@@ -642,7 +705,8 @@
       say('Der Tresor öffnet sich bei genau 31 Energie.'); startTimer();
     });
     runBtn.addEventListener('click', run);
-    document.getElementById('again').addEventListener('click', build);
+    againBtn.addEventListener('click', build);
+    levelSelect.addEventListener('change', build);
     build();
 
     if ('serviceWorker' in navigator) {
