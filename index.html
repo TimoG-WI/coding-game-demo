@@ -80,6 +80,40 @@
       flex: none
     }
 
+    .fullscreen-toggle {
+      width: 42px;
+      height: 42px;
+      min-height: 42px;
+      padding: 8px;
+      display: grid;
+      place-items: center;
+      flex: none;
+      border-color: #cdd1d7;
+      background: #fff
+    }
+
+    .fullscreen-toggle svg {
+      width: 22px;
+      height: 22px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round
+    }
+
+    .fullscreen-exit {
+      display: none
+    }
+
+    .fullscreen-toggle.is-fullscreen .fullscreen-enter {
+      display: none
+    }
+
+    .fullscreen-toggle.is-fullscreen .fullscreen-exit {
+      display: initial
+    }
+
     main {
       max-width: 1280px;
       margin: 0 auto;
@@ -499,6 +533,17 @@
   <header class="brand-header">
     <div class="brand-bar">
       <img class="brand-logo" src="./weidmueller-logo.svg" alt="Weidmüller" width="213" height="29">
+      <button class="fullscreen-toggle" id="fullscreen" type="button" aria-label="Vollbild aktivieren"
+        title="Vollbild aktivieren">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <g class="fullscreen-enter">
+            <path d="M8 3H5a2 2 0 0 0-2 2v3m13-5h3a2 2 0 0 1 2 2v3M3 16v3a2 2 0 0 0 2 2h3m8 0h3a2 2 0 0 0 2-2v-3" />
+          </g>
+          <g class="fullscreen-exit">
+            <path d="M8 3v5H3m13-5v5h5M3 16h5v5m13-5h-5v5" />
+          </g>
+        </svg>
+      </button>
     </div>
   </header>
   <main>
@@ -598,7 +643,7 @@
     const list = document.getElementById('list'), msg = document.getElementById('msg'),
       en = document.getElementById('en'), vault = document.getElementById('vault'),
       runBtn = document.getElementById('run'), levelSelect = document.getElementById('level'),
-      againBtn = document.getElementById('again');
+      againBtn = document.getElementById('again'), fullscreenBtn = document.getElementById('fullscreen');
     let level = LEVELS[levelSelect.value];
     let t0 = null, timer = null, resetTimer = null, busy = false, solved = false, started = false;
 
@@ -735,6 +780,25 @@
     runBtn.addEventListener('click', run);
     againBtn.addEventListener('click', build);
     levelSelect.addEventListener('change', build);
+    if (!document.documentElement.requestFullscreen || !document.exitFullscreen) {
+      fullscreenBtn.hidden = true;
+    } else {
+      const updateFullscreenButton = () => {
+        const isFullscreen = Boolean(document.fullscreenElement);
+        fullscreenBtn.classList.toggle('is-fullscreen', isFullscreen);
+        fullscreenBtn.setAttribute('aria-label', isFullscreen ? 'Vollbild beenden' : 'Vollbild aktivieren');
+        fullscreenBtn.title = isFullscreen ? 'Vollbild beenden' : 'Vollbild aktivieren';
+      };
+      fullscreenBtn.addEventListener('click', async () => {
+        try {
+          if (document.fullscreenElement) await document.exitFullscreen();
+          else await document.documentElement.requestFullscreen();
+        } catch (error) {
+          console.error('Fullscreen toggle failed:', error);
+        }
+      });
+      document.addEventListener('fullscreenchange', updateFullscreenButton);
+    }
     build();
 
     if ('serviceWorker' in navigator) {

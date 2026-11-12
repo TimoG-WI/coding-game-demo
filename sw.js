@@ -1,5 +1,5 @@
 const CACHE_PREFIX = 'tresor-hack-';
-const CACHE_NAME = `${CACHE_PREFIX}v13`;
+const CACHE_NAME = `${CACHE_PREFIX}v14`;
 const INDEX_URL = new URL('./index.html', self.location.href).href;
 const APP_ASSETS = ['./index.html', './manifest.webmanifest', './icon.svg', './sortable.min.js',
     './prism-core.min.js', './prism-python.min.js', './weidmueller-logo.svg']
