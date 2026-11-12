@@ -154,6 +154,13 @@
       border-top: 3px solid var(--brass)
     }
 
+    .file-name {
+      margin-bottom: 14px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--line);
+      font: 500 14px var(--mono)
+    }
+
     #list.locked {
       filter: blur(8px);
       pointer-events: none
@@ -483,6 +490,7 @@
     <section aria-label="Code sortieren">
       <div class="panel">
         <div class="field">
+          <div class="file-name">tresor.py</div>
           <div id="list" aria-label="Code-Zeilen, per Ziehen sortieren"></div>
           <div class="cover" id="cover"><button class="main" id="start">Start</button></div>
         </div>
