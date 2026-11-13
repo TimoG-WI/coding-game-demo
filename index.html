@@ -641,7 +641,7 @@
   <script src="./prism-python.min.js"></script>
   <script>
     Prism.languages.insertBefore('python', 'keyword', {
-      'builtin-function': { pattern: /\bprint(?=\s*\()/, alias: 'builtin' }
+      'builtin-function': { pattern: /\bopenTresor(?=\s*\()/, alias: 'builtin' }
     });
     const LEVELS = {
       easy: {
@@ -649,7 +649,7 @@
           "energie = 25",
           "while energie < 175:",
           "    energie = energie + 50",
-          "print('TRESOR OFFEN!')"
+          "openTresor()"
         ],
         swapInitial: false,
         hint: 'Tipp: Starte mit 25 Energie. Solange die Energie unter 175 liegt, addiert die Schleife jeweils 50. Danach öffnest du den Tresor.'
@@ -662,7 +662,7 @@
           "    if p > 50:",
           "        energie = energie + p",
           "if energie == 175:",
-          "    print('TRESOR OFFEN!')"
+          "    openTresor()"
         ],
         swapInitial: true,
         hint: 'Tipp: Erst müssen die Variablen existieren, dann kommt die Schleife, am Ende die Prüfung.'
@@ -677,7 +677,7 @@
           "    else:",
           "        energie = energie + p",
           "if energie == 175:",
-          "    print('TRESOR OFFEN!')"
+          "    openTresor()"
         ],
         swapInitial: true,
         hint: 'Tipp: % prüft den Rest einer Division, // teilt ganzzahlig. Gerade Pins zählen zur Hälfte, ungerade vollständig. Das else gehört zur Prüfung in der Schleife.'
