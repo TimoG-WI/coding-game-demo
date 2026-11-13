@@ -700,13 +700,12 @@
           "for value in VALUES:",
           "    if value > 0:",
           "        energy = energy + value",
-          "    if energy >= 175:",
-          "        break",
-          "if energy == 175:",
-          "    open_tresor()"
+          "    if energy == 175:",
+          "        open_tresor()",
+          "        break"
         ],
         swapInitial: true,
-        hint: 'Tipp: Addiere nur positive Werte aus VALUES. Beende die Schleife mit break, sobald mindestens 175 Energie erreicht sind. Öffne den Tresor danach nur bei genau 175 Energie.'
+        hint: 'Tipp: Addiere nur positive Werte aus VALUES. Sobald genau 175 Energie erreicht sind, öffne den Tresor und beende die Schleife mit break.'
       }
     };
     const list = document.getElementById('list'), msg = document.getElementById('msg'),
@@ -830,12 +829,11 @@
           }
           en.textContent = energy;
           await hi(5);
-          if (energy >= 175) {
-            await hi(6); break;
+          if (energy === 175) {
+            await hi(6); unlocked = true;
+            await hi(7); break;
           }
         }
-        await hi(7);
-        if (energy === 175) await hi(8);
       } else {
         for (const pin of [80, 35, 175, 10]) {
           await hi(1); en.textContent = pin;
