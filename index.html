@@ -629,9 +629,9 @@
       <div class="panel">
         <fieldset class="level-picker">
           <legend>Schwierigkeitsgrad</legend>
-          <label class="level-option"><input type="radio" name="level" value="easy"> Einfach</label>
+          <label class="level-option"><input type="radio" name="level" value="easy"> Anfänger</label>
           <label class="level-option"><input type="radio" name="level" value="advanced" checked> Fortgeschritten</label>
-          <label class="level-option"><input type="radio" name="level" value="pro"> Profi</label>
+          <label class="level-option"><input type="radio" name="level" value="pro"> Experte</label>
         </fieldset>
         <div class="field">
           <div class="file-name">tresor.py</div>
@@ -684,31 +684,29 @@
       },
       advanced: {
         code: [
-          "energy = 0",
-          "possible_pins = [80, 35, 95, 10]",
-          "for pin in possible_pins:",
-          "    if pin > 50:",
-          "        energy = energy + pin",
-          "if energy == 175:",
-          "    open_tresor()"
+          "POSSIBLE_PINS = [80, 35, 175, 10]",
+          "for pin in POSSIBLE_PINS:",
+          "    if pin == 175:",
+          "        open_tresor()",
+          "        break"
         ],
-        swapInitial: true,
-        hint: 'Tipp: Erst müssen die Variablen existieren, dann kommt die Schleife, am Ende die Prüfung.'
+        swapInitial: false,
+        hint: 'Tipp: Probiere die möglichen PINs nacheinander. Bei PIN 175 öffnest du den Tresor und beendest die Schleife mit break.'
       },
       pro: {
         code: [
           "energy = 0",
-          "possible_pins = [80, 70, 99, 2]",
-          "for pin in possible_pins:",
-          "    if pin % 2 == 0:",
-          "        energy = energy + pin // 2",
-          "    else:",
-          "        energy = energy + pin",
+          "VALUES = [80, -20, 70, 25, 200]",
+          "for value in VALUES:",
+          "    if value > 0:",
+          "        energy = energy + value",
+          "    if energy >= 175:",
+          "        break",
           "if energy == 175:",
           "    open_tresor()"
         ],
         swapInitial: true,
-        hint: 'Tipp: % prüft den Rest einer Division, // teilt ganzzahlig. Gerade Pins zählen zur Hälfte, ungerade vollständig. Das else gehört zur Prüfung in der Schleife.'
+        hint: 'Tipp: Addiere nur positive Werte aus VALUES. Beende die Schleife mit break, sobald mindestens 175 Energie erreicht sind. Öffne den Tresor danach nur bei genau 175 Energie.'
       }
     };
     const list = document.getElementById('list'), msg = document.getElementById('msg'),
@@ -718,6 +716,8 @@
     const selectedLevel = () => levelInputs.find(input => input.checked).value;
     const setLevelDisabled = disabled => levelInputs.forEach(input => { input.disabled = disabled });
     let level = LEVELS[selectedLevel()];
+    const targetMessage = () => level === LEVELS.advanced
+      ? 'Finde die richtige PIN: 175.' : 'Der Tresor öffnet sich bei genau 175 Energie.';
     let t0 = null, timer = null, resetTimer = null, busy = false, solved = false, started = false;
 
     function say(t, c) { msg.textContent = t; msg.className = c || '' }
@@ -726,6 +726,7 @@
       clearTimeout(resetTimer);
       level = LEVELS[selectedLevel()];
       document.querySelector('.goal').textContent = level.hint;
+      document.querySelector('.num small').textContent = level === LEVELS.advanced ? 'PIN' : 'Energie';
       sortable.option('disabled', true);
       let idx = level.code.map((_, i) => i);
       do { for (let i = idx.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[idx[i], idx[j]] = [idx[j], idx[i]] } }
@@ -809,7 +810,7 @@
       againBtn.disabled = true; setLevelDisabled(true);
       say('Code läuft …');
       const rows = [...list.children];
-      let energy = 0; const possiblePins = [80, 35, 95, 10];
+      let energy = 0, unlocked = false;
       const hi = async i => { rows[i].classList.add('run'); await wait(450); rows[i].classList.remove('run') };
       await hi(0);
       if (level === LEVELS.easy) {
@@ -822,26 +823,30 @@
         await hi(3);
       } else if (level === LEVELS.pro) {
         await hi(1);
-        for (const pin of [80, 70, 99, 2]) {
+        for (const value of [80, -20, 70, 25, 200]) {
           await hi(2); await hi(3);
-          if (pin % 2 === 0) {
-            await hi(4); energy += Math.floor(pin / 2);
-          } else {
-            await hi(5); await hi(6); energy += pin;
+          if (value > 0) {
+            await hi(4); energy += value;
           }
           en.textContent = energy;
+          await hi(5);
+          if (energy >= 175) {
+            await hi(6); break;
+          }
         }
-        await hi(7); await hi(8);
+        await hi(7);
+        if (energy === 175) await hi(8);
       } else {
-        await hi(1);
-        await hi(2);
-        for (const pin of possiblePins) {
-          await hi(3);
-          if (pin > 50) { await hi(4); energy += pin; en.textContent = energy }
+        for (const pin of [80, 35, 175, 10]) {
+          await hi(1); en.textContent = pin;
+          await hi(2);
+          if (pin === 175) {
+            await hi(3); unlocked = true;
+            await hi(4); break;
+          }
         }
-        await hi(5); await hi(6);
       }
-      if (energy === 175) {
+      if (unlocked || energy === 175) {
         rows.forEach(r => r.classList.add('ok'));
         vault.classList.add('open'); say('TRESOR OFFEN!', 'good');
         const s = Math.floor((Date.now() - t0) / 1000);
@@ -855,7 +860,7 @@
     document.getElementById('start').addEventListener('click', () => {
       started = true; cover.hidden = true; list.classList.remove('locked'); runBtn.disabled = false;
       sortable.option('disabled', false);
-      say('Der Tresor öffnet sich bei genau 175 Energie.'); startTimer();
+      say(targetMessage()); startTimer();
     });
     runBtn.addEventListener('click', run);
     againBtn.addEventListener('click', () => {
