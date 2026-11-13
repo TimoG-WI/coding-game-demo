@@ -477,6 +477,8 @@
 
     .handle {
       transform-origin: 150px 150px;
+      transform: rotate(0deg);
+      transition: transform 1.2s ease-in-out;
       stroke: var(--brass);
       stroke-width: 12;
       stroke-linecap: round
@@ -487,7 +489,6 @@
     }
 
     .vault.open .handle {
-      transition: transform 1.2s ease-in-out;
       transform: rotate(360deg);
       stroke: var(--ok)
     }
@@ -497,8 +498,12 @@
     }
 
     @keyframes remix-turn {
+      from {
+        transform: rotate(0deg)
+      }
+
       to {
-        transform: rotate(360deg)
+        transform: rotate(-360deg)
       }
     }
 
