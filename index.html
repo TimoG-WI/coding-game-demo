@@ -631,7 +631,7 @@
           <div><span id="en">0</span><small>Energie</small></div>
         </div>
       </div>
-      <div id="msg" role="status">Der Tresor öffnet sich bei genau 31 Energie.</div>
+      <div id="msg" role="status">Der Tresor öffnet sich bei genau 175 Energie.</div>
       <div class="stats"><span>Zeit <b id="tm">0:00</b></span></div>
       <p class="goal">Tipp: Erst müssen die Variablen existieren, dann kommt die Schleife, am Ende die Prüfung.</p>
     </section>
@@ -646,22 +646,22 @@
     const LEVELS = {
       easy: {
         code: [
-          "energie = 1",
-          "while energie < 31:",
-          "    energie = energie + 10",
+          "energie = 25",
+          "while energie < 175:",
+          "    energie = energie + 50",
           "print('TRESOR OFFEN!')"
         ],
         swapInitial: false,
-        hint: 'Tipp: Starte mit 1 Energie. Solange die Energie unter 31 liegt, addiert die Schleife jeweils 10. Danach öffnest du den Tresor.'
+        hint: 'Tipp: Starte mit 25 Energie. Solange die Energie unter 175 liegt, addiert die Schleife jeweils 50. Danach öffnest du den Tresor.'
       },
       advanced: {
         code: [
           "energie = 0",
-          "pins = [12, 7, 19, 4]",
+          "pins = [80, 35, 95, 10]",
           "for p in pins:",
-          "    if p > 10:",
+          "    if p > 50:",
           "        energie = energie + p",
-          "if energie == 31:",
+          "if energie == 175:",
           "    print('TRESOR OFFEN!')"
         ],
         swapInitial: true,
@@ -670,13 +670,13 @@
       pro: {
         code: [
           "energie = 0",
-          "pins = [8, 7, 19, 2]",
+          "pins = [80, 70, 99, 2]",
           "for p in pins:",
           "    if p % 2 == 0:",
           "        energie = energie + p // 2",
           "    else:",
           "        energie = energie + p",
-          "if energie == 31:",
+          "if energie == 175:",
           "    print('TRESOR OFFEN!')"
         ],
         swapInitial: true,
@@ -781,20 +781,20 @@
       againBtn.disabled = true; setLevelDisabled(true);
       say('Code läuft …');
       const rows = [...list.children];
-      let energie = 0; const pins = [12, 7, 19, 4];
+      let energie = 0; const pins = [80, 35, 95, 10];
       const hi = async i => { rows[i].classList.add('run'); await wait(450); rows[i].classList.remove('run') };
       await hi(0);
       if (level === LEVELS.easy) {
-        energie = 1; en.textContent = energie;
+        energie = 25; en.textContent = energie;
         await hi(1);
-        while (energie < 31) {
-          await hi(2); energie += 10; en.textContent = energie;
+        while (energie < 175) {
+          await hi(2); energie += 50; en.textContent = energie;
           await hi(1);
         }
         await hi(3);
       } else if (level === LEVELS.pro) {
         await hi(1);
-        for (const pin of [8, 7, 19, 2]) {
+        for (const pin of [80, 70, 99, 2]) {
           await hi(2); await hi(3);
           if (pin % 2 === 0) {
             await hi(4); energie += Math.floor(pin / 2);
@@ -809,11 +809,11 @@
         await hi(2);
         for (const p of pins) {
           await hi(3);
-          if (p > 10) { await hi(4); energie += p; en.textContent = energie }
+          if (p > 50) { await hi(4); energie += p; en.textContent = energie }
         }
         await hi(5); await hi(6);
       }
-      if (energie === 31) {
+      if (energie === 175) {
         rows.forEach(r => r.classList.add('ok'));
         vault.classList.add('open'); say('TRESOR OFFEN!', 'good');
         const s = Math.floor((Date.now() - t0) / 1000);
@@ -827,7 +827,7 @@
     document.getElementById('start').addEventListener('click', () => {
       started = true; cover.hidden = true; list.classList.remove('locked'); runBtn.disabled = false;
       sortable.option('disabled', false);
-      say('Der Tresor öffnet sich bei genau 31 Energie.'); startTimer();
+      say('Der Tresor öffnet sich bei genau 175 Energie.'); startTimer();
     });
     runBtn.addEventListener('click', run);
     againBtn.addEventListener('click', build);
