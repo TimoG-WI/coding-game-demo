@@ -665,9 +665,9 @@
     const LEVELS = {
       easy: {
         code: [
-          "energie = 25",
-          "while energie < 175:",
-          "    energie = energie + 50",
+          "energy = 25",
+          "while energy < 175:",
+          "    energy = energy + 50",
           "open_tresor()"
         ],
         swapInitial: false,
@@ -675,12 +675,12 @@
       },
       advanced: {
         code: [
-          "energie = 0",
-          "pins = [80, 35, 95, 10]",
-          "for p in pins:",
-          "    if p > 50:",
-          "        energie = energie + p",
-          "if energie == 175:",
+          "energy = 0",
+          "possible_pins = [80, 35, 95, 10]",
+          "for pin in possible_pins:",
+          "    if pin > 50:",
+          "        energy = energy + pin",
+          "if energy == 175:",
           "    open_tresor()"
         ],
         swapInitial: true,
@@ -688,14 +688,14 @@
       },
       pro: {
         code: [
-          "energie = 0",
-          "pins = [80, 70, 99, 2]",
-          "for p in pins:",
-          "    if p % 2 == 0:",
-          "        energie = energie + p // 2",
+          "energy = 0",
+          "possible_pins = [80, 70, 99, 2]",
+          "for pin in possible_pins:",
+          "    if pin % 2 == 0:",
+          "        energy = energy + pin // 2",
           "    else:",
-          "        energie = energie + p",
-          "if energie == 175:",
+          "        energy = energy + pin",
+          "if energy == 175:",
           "    open_tresor()"
         ],
         swapInitial: true,
@@ -800,14 +800,14 @@
       againBtn.disabled = true; setLevelDisabled(true);
       say('Code läuft …');
       const rows = [...list.children];
-      let energie = 0; const pins = [80, 35, 95, 10];
+      let energy = 0; const possiblePins = [80, 35, 95, 10];
       const hi = async i => { rows[i].classList.add('run'); await wait(450); rows[i].classList.remove('run') };
       await hi(0);
       if (level === LEVELS.easy) {
-        energie = 25; en.textContent = energie;
+        energy = 25; en.textContent = energy;
         await hi(1);
-        while (energie < 175) {
-          await hi(2); energie += 50; en.textContent = energie;
+        while (energy < 175) {
+          await hi(2); energy += 50; en.textContent = energy;
           await hi(1);
         }
         await hi(3);
@@ -816,23 +816,23 @@
         for (const pin of [80, 70, 99, 2]) {
           await hi(2); await hi(3);
           if (pin % 2 === 0) {
-            await hi(4); energie += Math.floor(pin / 2);
+            await hi(4); energy += Math.floor(pin / 2);
           } else {
-            await hi(5); await hi(6); energie += pin;
+            await hi(5); await hi(6); energy += pin;
           }
-          en.textContent = energie;
+          en.textContent = energy;
         }
         await hi(7); await hi(8);
       } else {
         await hi(1);
         await hi(2);
-        for (const p of pins) {
+        for (const pin of possiblePins) {
           await hi(3);
-          if (p > 50) { await hi(4); energie += p; en.textContent = energie }
+          if (pin > 50) { await hi(4); energy += pin; en.textContent = energy }
         }
         await hi(5); await hi(6);
       }
-      if (energie === 175) {
+      if (energy === 175) {
         rows.forEach(r => r.classList.add('ok'));
         vault.classList.add('open'); say('TRESOR OFFEN!', 'good');
         const s = Math.floor((Date.now() - t0) / 1000);
