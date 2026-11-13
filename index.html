@@ -477,7 +477,6 @@
 
     .handle {
       transform-origin: 150px 150px;
-      transition: transform 1.2s ease-in-out;
       stroke: var(--brass);
       stroke-width: 12;
       stroke-linecap: round
@@ -488,8 +487,19 @@
     }
 
     .vault.open .handle {
+      transition: transform 1.2s ease-in-out;
       transform: rotate(360deg);
       stroke: var(--ok)
+    }
+
+    .vault.remixing .handle {
+      animation: remix-turn .8s ease-in-out
+    }
+
+    @keyframes remix-turn {
+      to {
+        transform: rotate(360deg)
+      }
     }
 
     .num {
@@ -563,8 +573,12 @@
     }
 
     @media (prefers-reduced-motion:reduce) {
-      .handle {
+      .vault.open .handle {
         transition: none
+      }
+
+      .vault.remixing .handle {
+        animation: none
       }
 
       .shake {
@@ -830,7 +844,12 @@
       say('Der Tresor öffnet sich bei genau 175 Energie.'); startTimer();
     });
     runBtn.addEventListener('click', run);
-    againBtn.addEventListener('click', build);
+    againBtn.addEventListener('click', () => {
+      build();
+      vault.classList.remove('remixing');
+      void vault.offsetWidth;
+      vault.classList.add('remixing');
+    });
     levelInputs.forEach(input => input.addEventListener('change', build));
     let pseudoFullscreen = false;
     const nativeFullscreenElement = () => document.fullscreenElement || document.webkitFullscreenElement;
